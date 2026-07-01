@@ -7,8 +7,8 @@ class SupabaseCli < Formula
   conflicts_with "supabase", because: "both install `supabase`"
 
   def install
-    bin.install "bin/supabase"
-    bin.install "bin/supabase-go"
+    bin.install "supabase"
+    bin.install "supabase-go"
   end
 
   test do
