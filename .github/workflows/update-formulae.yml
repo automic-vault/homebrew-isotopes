@@ -1,0 +1,29 @@
+name: Update formulae
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update formulae
+        run: ruby script/update-formulae
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Commit changes
+        run: |
+          git diff --quiet Formula && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Formula
+          git commit -m "Update Homebrew formulae"
+          git push
