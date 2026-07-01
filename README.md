@@ -1,11 +1,14 @@
-# av.tap
+# Automic Vault Isotopes Homebrew Tap
 
-Homebrew tap for Automic Vault CLI builds.
+Homebrew tap for Automic Vault Isotopes.
 
 ```sh
-brew tap automic-vault/tap
-brew install gh-cli
-brew install supabase-cli
+brew trust automic-vault/isotopes
+
+brew rm gh supabase  # we obviously conflict with the upstream versions
+
+brew install automic-vault/isotopes/gh-cli
+brew install automic-vault/isotopes/supabase-cli
 ```
 
 The formulae are updated hourly from the latest GitHub releases for:
