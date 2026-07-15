@@ -1,9 +1,11 @@
 # Automic Vault Isotopes Homebrew Tap
 
-Homebrew tap for Automic Vault Isotopes.
+Homebrew tap for Automic Vault and its isotopes.
 
 ```sh
 brew trust automic-vault/isotopes
+
+brew install --cask automic-vault/isotopes/automic-vault
 
 brew rm gh supabase  # we obviously conflict with the upstream versions
 
