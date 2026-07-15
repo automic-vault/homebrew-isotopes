@@ -12,7 +12,6 @@ cask "automic-vault" do
   depends_on macos: :sonoma
 
   app "Automic Vault.app"
-  binary "#{appdir}/Automic Vault.app/Contents/MacOS/av"
 
   uninstall launchctl: "com.automicvault.menubar-helper",
             quit:      "com.automicvault"
