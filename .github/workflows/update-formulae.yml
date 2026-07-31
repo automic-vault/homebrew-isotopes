@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Update formulae
-        run: ruby script/update-formulae
+        run: ./Scripts/update-formulae.rb
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
