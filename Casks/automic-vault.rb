@@ -1,6 +1,6 @@
 cask "automic-vault" do
-  version "2.9.0"
-  sha256 "8595028116c2fdaece968b8fa0522b54dcb32f2973bd5907deb3ec0af6b8dd04"
+  version "2.10.0"
+  sha256 "99806d421d4b5e64f387537cc6677ada11283a3a0d981a12df8e3e1b9c80328d"
 
   url "https://github.com/automic-vault/automic-vault/releases/download/#{version}/Automic-Vault-#{version}.dmg"
   name "Automic Vault"
