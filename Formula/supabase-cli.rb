@@ -1,8 +1,8 @@
 class SupabaseCli < Formula
   desc "Automic Vault build of Supabase CLI"
   homepage "https://github.com/automic-vault/supabase-cli"
-  url "https://github.com/automic-vault/supabase-cli/releases/download/v2.109.1/cli-2.109.1.tgz"
-  sha256 "0117244e69f71cc6125843d730c632fdbb02342772abc3b45b6ba672f9f47bd3"
+  url "https://github.com/automic-vault/supabase-cli/releases/download/v2.111.0/cli-2.111.0.tgz"
+  sha256 "0dada1d225b6ebdbe5f004c9d309580942fea710bc475a096826e7fa367bd04f"
   license "MIT"
   conflicts_with "supabase", because: "both install `supabase`"
 
