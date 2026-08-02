@@ -1,8 +1,9 @@
-#!/usr/bin/env bash
+#!/usr/local/bin/av inject -- /bin/bash
 # --- automic-vault
 # capabilities:
 #   gh: trusted
 # ---
+# shellcheck shell=bash disable=SC1008,SC2096
 set -euo pipefail
 
 org="automic-vault"
