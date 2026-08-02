@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# --- automic-vault
+# capabilities:
+#   gh: trusted
+# ---
 set -euo pipefail
 
 org="automic-vault"
