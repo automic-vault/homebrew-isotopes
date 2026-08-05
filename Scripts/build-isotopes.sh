@@ -7,8 +7,11 @@
 set -euo pipefail
 
 org="automic-vault"
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-repo_root="$(cd "${script_dir}/.." && pwd)"
+# `av inject` executes this script through /dev/fd, so BASH_SOURCE cannot
+# identify the checkout. The builder is repository-local; use its invocation
+# directory to keep handoff resume commands executable.
+repo_root="$(git rev-parse --show-toplevel)"
+script_dir="$repo_root/Scripts"
 clone_root="${AUTOMIC_VAULT_REPO_CACHE:-${repo_root}/Isotopes}"
 only_repo=""
 continue_tag=""
