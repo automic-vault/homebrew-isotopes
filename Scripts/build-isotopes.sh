@@ -202,6 +202,23 @@ release_exists() {
   gh release view "$2" --repo "$1" >/dev/null 2>&1
 }
 
+release_is_complete() {
+  local repo="$1"
+  local tag="$2"
+  local archive_name="$3"
+
+  gh release view "$tag" --repo "$repo" \
+    --json tagName,name,isDraft,isPrerelease,assets | jq -e \
+    --arg tag "$tag" --arg archive_name "$archive_name" '
+      .tagName == $tag and
+      .name == $tag and
+      .isDraft == false and
+      .isPrerelease == false and
+      (.assets | length == 1) and
+      .assets[0].name == $archive_name
+    ' >/dev/null
+}
+
 latest_release_json() {
   gh api -H "Accept: application/vnd.github+json" "/repos/$1/releases/latest"
 }
@@ -361,12 +378,16 @@ process_repo() {
     return 0
   fi
 
+  version="$(sanitize_version "$tag")"
   if release_exists "$fork_repo" "$tag"; then
-    echo "Skipping $fork_repo: release $tag already exists"
-    return 0
+    if release_is_complete "$fork_repo" "$tag" "cli-$version.tgz"; then
+      echo "Skipping $fork_repo: release $tag already exists"
+      return 0
+    fi
+    echo "Cannot continue $fork_repo: existing release $tag is incomplete" >&2
+    return 1
   fi
 
-  version="$(sanitize_version "$tag")"
   archive_path="$repo_dir/cli-$version.tgz"
   echo "New upstream release for $fork_repo: $upstream_repo $tag"
 
@@ -418,8 +439,8 @@ process_repo() {
     --title "$tag" \
     --verify-tag \
     --notes "Built from $upstream_repo $tag: $release_url"
-  if ! release_exists "$fork_repo" "$tag"; then
-    echo "Release creation did not produce $fork_repo $tag" >&2
+  if ! release_is_complete "$fork_repo" "$tag" "cli-$version.tgz"; then
+    echo "Release creation did not produce a complete $fork_repo $tag release" >&2
     return 1
   fi
 }
