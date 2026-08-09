@@ -418,6 +418,10 @@ process_repo() {
     --title "$tag" \
     --verify-tag \
     --notes "Built from $upstream_repo $tag: $release_url"
+  if ! release_exists "$fork_repo" "$tag"; then
+    echo "Release creation did not produce $fork_repo $tag" >&2
+    return 1
+  fi
 }
 
 repo_names="$(
