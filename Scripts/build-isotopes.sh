@@ -126,11 +126,7 @@ ensure_codesign_identity() {
 ensure_clone() {
   local repo_name="$1"
   local repo_dir="$clone_root/$repo_name"
-  local origin_url="https://github.com/$org/$repo_name.git"
-
-  if [[ "$(gh config get git_protocol --host github.com 2>/dev/null || true)" == ssh ]]; then
-    origin_url="git@github.com:$org/$repo_name.git"
-  fi
+  local origin_url="git@github.com:$org/$repo_name.git"
 
   if [[ -d "$repo_dir/.git" ]]; then
     git -C "$repo_dir" remote set-url origin "$origin_url"
@@ -145,8 +141,7 @@ ensure_clone() {
   if [[ "$dry_run" == true ]]; then
     echo "Would clone $org/$repo_name to $repo_dir"
   else
-    gh repo clone "$org/$repo_name" "$repo_dir"
-    git -C "$repo_dir" remote set-url origin "$origin_url"
+    git clone "$origin_url" "$repo_dir"
   fi
 }
 
@@ -189,7 +184,7 @@ ensure_fork_branch() {
 set_upstream_remote() {
   local repo_dir="$1"
   local upstream_repo="$2"
-  local upstream_url="https://github.com/$upstream_repo.git"
+  local upstream_url="git@github.com:$upstream_repo.git"
 
   if git -C "$repo_dir" remote get-url upstream >/dev/null 2>&1; then
     git -C "$repo_dir" remote set-url upstream "$upstream_url"
