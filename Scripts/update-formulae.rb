@@ -6,6 +6,10 @@ require "net/http"
 require "uri"
 
 FORMULAE = {
+  "Formula/stripe-cli.rb" => {
+    repo: "automic-vault/stripe-cli",
+    asset: /^cli-(.+)\.tgz$/
+  },
   "Formula/gh-cli.rb" => {
     repo: "automic-vault/gh-cli",
     asset: /^cli-(.+)\.tgz$/
