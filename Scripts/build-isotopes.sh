@@ -261,6 +261,7 @@ git_clean() {
 
   git -C "$repo_dir" diff --quiet &&
     git -C "$repo_dir" diff --cached --quiet &&
+    ! git -C "$repo_dir" ls-files --others --exclude-standard | grep -q . &&
     ! git -C "$repo_dir" diff --name-only --diff-filter=U | grep -q . &&
     [[ ! -d "$rebase_apply" ]] &&
     [[ ! -d "$rebase_merge" ]] &&
@@ -333,6 +334,25 @@ verify_archive_signatures() {
     return 1
   fi
   rm -rf "$archive_dir"
+}
+
+update_formula() {
+  local repo_name="$1"
+  local tag="$2"
+  local version="$3"
+  local archive_path="$4"
+  local formula_path="$repo_root/Formula/$repo_name.rb"
+  local sha256
+
+  [[ -f "$formula_path" ]] || return 0
+  sha256="$(shasum -a 256 "$archive_path" | awk '{ print $1 }')"
+  ruby - "$formula_path" "$org/$repo_name" "$tag" "$version" "$sha256" <<'RUBY'
+path, repo, tag, version, sha256 = ARGV
+formula = File.read(path)
+raise "missing release URL in #{path}" unless formula.sub!(/^  url ".*"$/, %(  url "https://github.com/#{repo}/releases/download/#{tag}/cli-#{version}.tgz"))
+raise "missing SHA-256 in #{path}" unless formula.sub!(/^  sha256 ".*"$/, %(  sha256 "#{sha256}"))
+File.write(path, formula)
+RUBY
 }
 
 process_repo() {
@@ -426,6 +446,7 @@ process_repo() {
   output="$(find_output "$repo_dir" "$repo_name")"
   mv -f "$output" "$archive_path"
   verify_archive_signatures "$archive_path"
+  update_formula "$repo_name" "$tag" "$version" "$archive_path"
 
   git -C "$repo_dir" push origin "HEAD:$upstream_default" --force-with-lease
   git -C "$repo_dir" push origin "+refs/tags/$tag:refs/tags/$tag"
@@ -438,6 +459,12 @@ process_repo() {
     echo "Release creation did not produce a complete $fork_repo $tag release" >&2
     return 1
   fi
+  if ! git -C "$repo_root" diff --quiet -- "Formula/$repo_name.rb"; then
+    git -C "$repo_root" add "Formula/$repo_name.rb"
+    git -C "$repo_root" commit -m "Update $repo_name isotope to $version"
+    git -C "$repo_root" push origin HEAD
+  fi
+  git -C "$repo_dir" clean -fd
 }
 
 repo_names="$(
