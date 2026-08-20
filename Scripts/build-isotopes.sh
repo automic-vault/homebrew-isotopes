@@ -226,8 +226,8 @@ handoff_to_agent() {
   local rebase_status="$5"
   local resume_command
 
-  printf -v resume_command '%q --clone-root %q --repo %q --continue --tag %q' \
-    "$script_dir/build-isotopes.sh" "$clone_root" "${fork_repo#*/}" "$tag"
+  printf -v resume_command 'cd %q && %q --clone-root %q --repo %q --continue --tag %q' \
+    "$repo_root" "$script_dir/build-isotopes.sh" "$clone_root" "${fork_repo#*/}" "$tag"
 
   cat >&2 <<EOF
 CONTROLLING AGENT ACTION REQUIRED
