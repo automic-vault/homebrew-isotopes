@@ -215,7 +215,16 @@ release_is_complete() {
 }
 
 latest_release_json() {
-  gh api -H "Accept: application/vnd.github+json" "/repos/$1/releases/latest"
+  local response
+
+  if response="$(gh api -H "Accept: application/vnd.github+json" "/repos/$1/releases/latest" 2>&1)"; then
+    printf '%s\n' "$response"
+  elif [[ "$response" == *"HTTP 404"* ]]; then
+    printf '{}\n'
+  else
+    echo "$response" >&2
+    return 1
+  fi
 }
 
 handoff_to_agent() {
