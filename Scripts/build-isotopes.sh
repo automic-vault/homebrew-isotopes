@@ -368,7 +368,7 @@ process_repo() {
   local repo_name="$1"
   local fork_repo="$org/$repo_name"
   local repo_dir="$clone_root/$repo_name"
-  local repo_json upstream_repo upstream_default current_default release_json tag version release_url output archive_path status
+  local repo_json upstream_repo upstream_default current_default release_json tag version release_url output archive_path status rebase_base post_tag_upstream
 
   echo "Checking $fork_repo"
   ensure_clone "$repo_name"
@@ -426,10 +426,15 @@ process_repo() {
 
   set_upstream_remote "$repo_dir" "$upstream_repo"
   git -C "$repo_dir" fetch --no-tags upstream "+refs/tags/$tag:refs/tags/$tag"
+  git -C "$repo_dir" fetch --no-tags upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
 
   if [[ "$continue_update" == false ]]; then
+    rebase_base="refs/tags/$tag"
+    if git -C "$repo_dir" merge-base --is-ancestor "refs/remotes/upstream/$upstream_default" HEAD; then
+      rebase_base="refs/remotes/upstream/$upstream_default"
+    fi
     set +e
-    git -C "$repo_dir" rebase "refs/tags/$tag"
+    git -C "$repo_dir" rebase --onto "refs/tags/$tag" "$rebase_base"
     status=$?
     set -e
     handoff_to_agent "$repo_dir" "$fork_repo" "$upstream_repo" "$tag" "$status"
@@ -447,6 +452,18 @@ process_repo() {
   fi
   if ! git -C "$repo_dir" merge-base --is-ancestor "refs/tags/$tag" HEAD; then
     echo "Cannot continue $fork_repo: HEAD is not based on upstream tag $tag" >&2
+    return 1
+  fi
+  post_tag_upstream="$({
+    while read -r commit; do
+      if git -C "$repo_dir" merge-base --is-ancestor "$commit" "refs/remotes/upstream/$upstream_default"; then
+        printf '%s\n' "$commit"
+      fi
+    done < <(git -C "$repo_dir" rev-list "refs/tags/$tag..HEAD")
+  })"
+  if [[ -n "$post_tag_upstream" ]]; then
+    echo "Cannot continue $fork_repo: HEAD includes upstream commits newer than $tag" >&2
+    printf '%s\n' "$post_tag_upstream" >&2
     return 1
   fi
 
