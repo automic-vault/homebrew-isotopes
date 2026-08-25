@@ -4,8 +4,6 @@ class OrdercliIsotope < Formula
   url "https://github.com/automic-vault/ordercli/releases/download/v0.1.0/cli-0.1.0.tgz"
   sha256 "684cc8c3ac502afc4ffa31db6c2fb26e68c59e02bbf0e8d1dc7c60b181a2d96d"
   license "MIT"
-  conflicts_with "ordercli", because: "both install `ordercli`"
-
   def install
     bin.install "ordercli"
   end

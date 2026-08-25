@@ -4,8 +4,6 @@ class OxideCliIsotope < Formula
   url "https://github.com/automic-vault/oxide.rs/releases/download/v0.18.0+2026073100.0.0/cli-0.18.0+2026073100.0.0.tgz"
   sha256 "98b89bbdbb6343b984e676857b237414b3e7bc6dfad7302174aded453bf808ba"
   license "MPL-2.0"
-  conflicts_with "oxide-cli", because: "both install `oxide`"
-
   def install
     bin.install "oxide"
   end
