@@ -1,4 +1,4 @@
-class OpenhueCli < Formula
+class OpenhueCliIsotope < Formula
   desc "Automic Vault build of OpenHue CLI"
   homepage "https://github.com/automic-vault/openhue-cli"
   url "https://github.com/automic-vault/openhue-cli/releases/download/0.24/cli-0.24.tgz"

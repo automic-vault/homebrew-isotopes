@@ -1,4 +1,4 @@
-class UaaCli < Formula
+class UaaCliIsotope < Formula
   desc "Automic Vault build of UAA CLI"
   homepage "https://github.com/automic-vault/uaa-cli"
   url "https://github.com/automic-vault/uaa-cli/releases/download/v0.21.0/cli-0.21.0.tgz"

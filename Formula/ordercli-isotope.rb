@@ -1,4 +1,4 @@
-class Ordercli < Formula
+class OrdercliIsotope < Formula
   desc "Automic Vault build of ordercli"
   homepage "https://github.com/automic-vault/ordercli"
   url "https://github.com/automic-vault/ordercli/releases/download/v0.1.0/cli-0.1.0.tgz"

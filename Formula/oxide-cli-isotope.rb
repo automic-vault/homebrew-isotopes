@@ -1,4 +1,4 @@
-class OxideRs < Formula
+class OxideCliIsotope < Formula
   desc "Automic Vault build of oxide"
   homepage "https://github.com/automic-vault/oxide.rs"
   url "https://github.com/automic-vault/oxide.rs/releases/download/v0.18.0+2026073100.0.0/cli-0.18.0+2026073100.0.0.tgz"

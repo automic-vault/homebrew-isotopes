@@ -1,4 +1,4 @@
-class RailwayCli < Formula
+class RailwayIsotope < Formula
   desc "Automic Vault build of Railway CLI"
   homepage "https://github.com/automic-vault/railway-cli"
   url "https://github.com/automic-vault/railway-cli/releases/download/v5.43.2/cli-5.43.2.tgz"

@@ -1,4 +1,4 @@
-class Opentofu < Formula
+class OpentofuIsotope < Formula
   desc "Automic Vault build of OpenTofu"
   homepage "https://github.com/automic-vault/opentofu"
   url "https://github.com/automic-vault/opentofu/releases/download/v1.12.6/cli-1.12.6.tgz"

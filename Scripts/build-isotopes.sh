@@ -345,13 +345,29 @@ verify_archive_signatures() {
   rm -rf "$archive_dir"
 }
 
+formula_name() {
+  case "$1" in
+    opentofu) echo opentofu-isotope ;;
+    oxide.rs) echo oxide-cli-isotope ;;
+    goat) echo goat-isotope ;;
+    railway-cli) echo railway-isotope ;;
+    ordercli) echo ordercli-isotope ;;
+    uaa-cli) echo uaa-cli-isotope ;;
+    openhue-cli) echo openhue-cli-isotope ;;
+    plumber) echo plumber-isotope ;;
+    *) echo "$1" ;;
+  esac
+}
+
 update_formula() {
   local repo_name="$1"
   local tag="$2"
   local version="$3"
   local archive_path="$4"
-  local formula_path="$repo_root/Formula/$repo_name.rb"
-  local sha256
+  local formula_name sha256
+
+  formula_name="$(formula_name "$repo_name")"
+  local formula_path="$repo_root/Formula/$formula_name.rb"
 
   [[ -f "$formula_path" ]] || return 0
   sha256="$(shasum -a 256 "$archive_path" | awk '{ print $1 }')"
@@ -368,7 +384,7 @@ process_repo() {
   local repo_name="$1"
   local fork_repo="$org/$repo_name"
   local repo_dir="$clone_root/$repo_name"
-  local repo_json upstream_repo upstream_default current_default release_json tag version release_url output archive_path status rebase_base post_tag_upstream
+  local repo_json upstream_repo upstream_default current_default release_json tag version release_url output archive_path status rebase_base post_tag_upstream formula_name
 
   echo "Checking $fork_repo"
   ensure_clone "$repo_name"
@@ -473,6 +489,7 @@ process_repo() {
   mv -f "$output" "$archive_path"
   verify_archive_signatures "$archive_path"
   update_formula "$repo_name" "$tag" "$version" "$archive_path"
+  formula_name="$(formula_name "$repo_name")"
 
   git -C "$repo_dir" push origin "HEAD:$upstream_default" --force-with-lease
   git -C "$repo_dir" push origin "+refs/tags/$tag:refs/tags/$tag"
@@ -485,8 +502,8 @@ process_repo() {
     echo "Release creation did not produce a complete $fork_repo $tag release" >&2
     return 1
   fi
-  if ! git -C "$repo_root" diff --quiet -- "Formula/$repo_name.rb"; then
-    git -C "$repo_root" add "Formula/$repo_name.rb"
+  if ! git -C "$repo_root" diff --quiet -- "Formula/$formula_name.rb"; then
+    git -C "$repo_root" add "Formula/$formula_name.rb"
     git -C "$repo_root" commit -m "Update $repo_name isotope to $version"
     git -C "$repo_root" push origin HEAD
   fi

@@ -1,4 +1,4 @@
-class Goat < Formula
+class GoatIsotope < Formula
   desc "Automic Vault build of goat"
   homepage "https://github.com/automic-vault/goat"
   url "https://github.com/automic-vault/goat/releases/download/v0.2.3/cli-0.2.3.tgz"

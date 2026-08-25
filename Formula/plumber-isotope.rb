@@ -1,4 +1,4 @@
-class Plumber < Formula
+class PlumberIsotope < Formula
   desc "Automic Vault build of Plumber"
   homepage "https://github.com/automic-vault/plumber"
   url "https://github.com/automic-vault/plumber/releases/download/v2.9.0/cli-2.9.0.tgz"
