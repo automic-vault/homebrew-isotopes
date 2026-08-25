@@ -348,6 +348,7 @@ verify_archive_signatures() {
 
 formula_name() {
   case "$1" in
+    aliyun-cli) echo aliyun-cli-isotope ;;
     opentofu) echo opentofu-isotope ;;
     oxide.rs) echo oxide-cli-isotope ;;
     goat) echo goat-isotope ;;
