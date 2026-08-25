@@ -2,6 +2,7 @@
 # --- automic-vault
 # capabilities:
 #   gh: trusted
+#   gpg-signing: trusted
 # ---
 # shellcheck shell=bash disable=SC1008,SC2096
 set -euo pipefail
