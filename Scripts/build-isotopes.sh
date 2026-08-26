@@ -357,6 +357,7 @@ formula_name() {
     uaa-cli) echo uaa-cli-isotope ;;
     openhue-cli) echo openhue-cli-isotope ;;
     plumber) echo plumber-isotope ;;
+    wakatime-cli) echo wakatime-cli-isotope ;;
     *) echo "$1" ;;
   esac
 }
