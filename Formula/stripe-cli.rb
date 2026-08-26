@@ -1,8 +1,8 @@
 class StripeCli < Formula
   desc "Automic Vault build of Stripe CLI"
   homepage "https://github.com/automic-vault/stripe-cli"
-  url "https://github.com/automic-vault/stripe-cli/releases/download/v1.50.5/cli-1.50.5.tgz"
-  sha256 "e45489d0cbe3e382115ec67f318d6c46ed59823983e1a6c78940808fd608714a"
+  url "https://github.com/automic-vault/stripe-cli/releases/download/v1.50.6/cli-1.50.6.tgz"
+  sha256 "79433567ec8891be068affb4302a6a537158d953c5d80baf81f67344355ad76c"
   license "MIT"
   conflicts_with "stripe", because: "both install `stripe`"
 
