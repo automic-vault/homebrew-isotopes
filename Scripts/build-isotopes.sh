@@ -358,6 +358,7 @@ formula_name() {
     openhue-cli) echo openhue-cli-isotope ;;
     plumber) echo plumber-isotope ;;
     wakatime-cli) echo wakatime-cli-isotope ;;
+    rclone) echo rclone-isotope ;;
     *) echo "$1" ;;
   esac
 }
