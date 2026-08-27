@@ -1,8 +1,8 @@
 class WakatimeCliIsotope < Formula
   desc "Automic Vault build of WakaTime CLI"
   homepage "https://github.com/automic-vault/wakatime-cli"
-  url "https://github.com/automic-vault/wakatime-cli/releases/download/v2.24.4/cli-2.24.4.tgz"
-  sha256 "8b5b73d2a4e536b00615beba83c51c828a6806d791089cc8387c87a4686f5702"
+  url "https://github.com/automic-vault/wakatime-cli/releases/download/v2.25.0/cli-2.25.0.tgz"
+  sha256 "58d80447b34e969432659ab98bfa55be20f0db00c6e9f20b40aca7eb8ef883a3"
   license "BSD-3-Clause"
   conflicts_with "wakatime-cli", because: "both install `wakatime-cli`"
 
