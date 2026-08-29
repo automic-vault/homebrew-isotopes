@@ -407,6 +407,10 @@ process_repo() {
   fi
   if [[ "$continue_update" == false ]]; then
     ensure_fork_branch "$repo_name" "$upstream_default" "$current_default"
+    if [[ ! -f "$repo_dir/automic-vault.yml" ]]; then
+      echo "Skipping $fork_repo: automic-vault.yml is unavailable"
+      return 0
+    fi
   fi
 
   if [[ "$continue_update" == true ]]; then
