@@ -158,7 +158,11 @@ ensure_fork_branch() {
     return 0
   fi
 
-  git -C "$repo_dir" fetch --no-tags origin
+  if [[ "$(git -C "$repo_dir" rev-parse --is-shallow-repository)" == true ]]; then
+    git -C "$repo_dir" fetch --no-tags --depth=2 origin
+  else
+    git -C "$repo_dir" fetch --no-tags origin
+  fi
   current_branch="$(git -C "$repo_dir" branch --show-current || true)"
   if [[ "$current_branch" == "$branch" ]] &&
     git -C "$repo_dir" show-ref --verify --quiet "refs/remotes/origin/$branch" &&
@@ -450,8 +454,13 @@ process_repo() {
   fi
 
   set_upstream_remote "$repo_dir" "$upstream_repo"
-  git -C "$repo_dir" fetch --no-tags upstream "+refs/tags/$tag:refs/tags/$tag"
-  git -C "$repo_dir" fetch --no-tags upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
+  if [[ "$(git -C "$repo_dir" rev-parse --is-shallow-repository)" == true ]]; then
+    git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/tags/$tag:refs/tags/$tag"
+    git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
+  else
+    git -C "$repo_dir" fetch --no-tags upstream "+refs/tags/$tag:refs/tags/$tag"
+    git -C "$repo_dir" fetch --no-tags upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
+  fi
 
   if [[ "$continue_update" == false ]]; then
     rebase_base="refs/tags/$tag"
