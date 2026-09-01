@@ -359,6 +359,7 @@ formula_name() {
     plumber) echo plumber-isotope ;;
     wakatime-cli) echo wakatime-cli-isotope ;;
     rclone) echo rclone-isotope ;;
+    kubectl) echo kubectl-isotope ;;
     *) echo "$1" ;;
   esac
 }
@@ -510,7 +511,8 @@ process_repo() {
     echo "Release creation did not produce a complete $fork_repo $tag release" >&2
     return 1
   fi
-  if ! git -C "$repo_root" diff --quiet -- "Formula/$formula_name.rb"; then
+  if ! git -C "$repo_root" ls-files --error-unmatch "Formula/$formula_name.rb" >/dev/null 2>&1 ||
+    ! git -C "$repo_root" diff --quiet -- "Formula/$formula_name.rb"; then
     git -C "$repo_root" add "Formula/$formula_name.rb"
     git -C "$repo_root" commit -m "Update $repo_name isotope to $version"
     git -C "$repo_root" push origin HEAD
