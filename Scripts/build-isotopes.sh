@@ -356,6 +356,7 @@ formula_name() {
     opentofu) echo opentofu-isotope ;;
     oxide.rs) echo oxide-cli-isotope ;;
     fastly-cli) echo fastly-cli-isotope ;;
+    go-sqlcmd) echo sqlcmd-isotope ;;
     goat) echo goat-isotope ;;
     railway-cli) echo railway-isotope ;;
     ordercli) echo ordercli-isotope ;;
