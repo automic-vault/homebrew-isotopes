@@ -1,8 +1,8 @@
 class RcloneIsotope < Formula
   desc "Automic Vault build of rclone"
   homepage "https://github.com/automic-vault/rclone"
-  url "https://github.com/automic-vault/rclone/releases/download/v1.75.0/cli-1.75.0.tgz"
-  sha256 "fb43f74abde1cf2ddcd5a3508b05155d2e2d22182a7bfa758be88bd059b75744"
+  url "https://github.com/automic-vault/rclone/releases/download/v1.75.1/cli-1.75.1.tgz"
+  sha256 "aa2cf4b99743b0e9aa5959dde9a613d1cf32628dc1bf14449a838f6b08fc8671"
   license "MIT"
   conflicts_with "rclone", because: "both install `rclone`"
 
