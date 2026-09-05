@@ -6,6 +6,10 @@ require "net/http"
 require "uri"
 
 FORMULAE = {
+  "Formula/wrangler-isotope.rb" => {
+    repo: "automic-vault/wrangler",
+    asset: /^cli-(.+)\.tgz$/
+  },
   "Formula/stripe-cli.rb" => {
     repo: "automic-vault/stripe-cli",
     asset: /^cli-(.+)\.tgz$/
