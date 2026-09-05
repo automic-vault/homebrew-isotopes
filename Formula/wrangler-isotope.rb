@@ -5,8 +5,8 @@ class WranglerIsotope < Formula
   sha256 "b7226e51c82c563ca081b52695121bcd58e7fea6fffd1a4cecaf6fe811d851bd"
   license "Apache-2.0"
 
-  depends_on :macos
   depends_on arch: :arm64
+  depends_on :macos
 
   def install
     libexec.install "Wrangler.app"
