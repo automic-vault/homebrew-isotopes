@@ -10,7 +10,15 @@ class WranglerIsotope < Formula
 
   def install
     libexec.install "Wrangler.app"
-    bin.install_symlink "/opt/av/wrangler/Wrangler.app/Contents/MacOS/wrangler"
+    (bin/"wrangler").write <<~SH
+      #!/bin/sh
+      target=/opt/av/wrangler/Wrangler.app/Contents/MacOS/wrangler
+      if [ ! -x "$target" ]; then
+        echo 'Run `av harden wrangler` to install the protected Wrangler runtime.' >&2
+        exit 1
+      fi
+      exec "$target" "$@"
+    SH
   end
 
   def caveats
