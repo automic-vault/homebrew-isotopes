@@ -19,6 +19,7 @@ class WranglerIsotope < Formula
       fi
       exec "$target" "$@"
     SH
+    (bin/"wrangler").chmod 0755
   end
 
   def caveats
@@ -30,6 +31,7 @@ class WranglerIsotope < Formula
   end
 
   test do
+    assert_predicate bin/"wrangler", :executable?
     system "/usr/bin/codesign", "--verify", "--deep", "--strict", libexec/"Wrangler.app"
   end
 end
