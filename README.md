@@ -16,10 +16,17 @@ brew rm gh supabase  # we obviously conflict with the upstream versions
 
 brew install automic-vault/isotopes/gh-cli
 brew install automic-vault/isotopes/supabase-cli
+brew install automic-vault/isotopes/wrangler-isotope
+av harden wrangler
 ```
+
+For Wrangler, log out of each upstream auth profile before switching, then log
+in through the Isotope. Re-run `av harden wrangler` after formula upgrades to
+replace its protected runtime.
 
 The formulae are updated hourly from the latest GitHub releases for:
 
+- https://github.com/automic-vault/wrangler
 - https://github.com/automic-vault/gh-cli
 - https://github.com/automic-vault/supabase-cli
 
