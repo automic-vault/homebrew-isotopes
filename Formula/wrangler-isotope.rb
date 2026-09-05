@@ -2,7 +2,7 @@ class WranglerIsotope < Formula
   desc "Automic Vault build of Cloudflare Wrangler"
   homepage "https://github.com/automic-vault/wrangler"
   url "https://github.com/automic-vault/wrangler/releases/download/v4.129.0/cli-4.129.0.tgz"
-  sha256 "1591e75fb68eeb1fb22cc575dd27e2dc006d43fdd5a9323f7db893340ded3f10"
+  sha256 "684dc226424cc33ca9963c8ea7d55686bef55965f9f6b19680246448eba37db2"
   license "Apache-2.0"
 
   depends_on arch: :arm64
@@ -32,6 +32,9 @@ class WranglerIsotope < Formula
 
   test do
     assert_predicate bin/"wrangler", :executable?
+    unless Pathname("/opt/av/wrangler/Wrangler.app/Contents/MacOS/wrangler").executable?
+      assert_match "av harden wrangler", shell_output("#{bin}/wrangler --version 2>&1", 1)
+    end
     system "/usr/bin/codesign", "--verify", "--deep", "--strict", libexec/"Wrangler.app"
   end
 end
