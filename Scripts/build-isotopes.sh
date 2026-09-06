@@ -220,9 +220,18 @@ release_is_complete() {
 }
 
 latest_release_json() {
+  local repo="$1"
+  local repo_name="$2"
   local response
 
-  if response="$(gh api -H "Accept: application/vnd.github+json" "/repos/$1/releases/latest" 2>&1)"; then
+  if [[ "$repo_name" == wrangler ]]; then
+    gh api -H "Accept: application/vnd.github+json" \
+      "/repos/$repo/releases?per_page=100" | jq -c \
+      '[.[] | select(.draft == false and .prerelease == false and (.tag_name | startswith("wrangler@")))] | first // {}'
+    return
+  fi
+
+  if response="$(gh api -H "Accept: application/vnd.github+json" "/repos/$repo/releases/latest" 2>&1)"; then
     printf '%s\n' "$response"
   elif [[ "$response" == *"HTTP 404"* ]]; then
     printf '{}\n'
@@ -395,7 +404,7 @@ process_repo() {
   local repo_name="$1"
   local fork_repo="$org/$repo_name"
   local repo_dir="$clone_root/$repo_name"
-  local repo_json upstream_repo upstream_default current_default release_json tag version release_url output archive_path status rebase_base post_tag_upstream formula_name
+  local repo_json upstream_repo upstream_default current_default release_json source_tag tag version release_url output archive_path status rebase_base post_tag_upstream formula_name
 
   echo "Checking $fork_repo"
   ensure_clone "$repo_name"
@@ -424,16 +433,22 @@ process_repo() {
     release_json="$(gh api -H "Accept: application/vnd.github+json" \
       "/repos/$upstream_repo/releases/tags/$continue_tag")"
   else
-    release_json="$(latest_release_json "$upstream_repo")"
+    release_json="$(latest_release_json "$upstream_repo" "$repo_name")"
   fi
-  tag="$(jq -r '.tag_name' <<<"$release_json")"
+  source_tag="$(jq -r '.tag_name' <<<"$release_json")"
   release_url="$(jq -r '.html_url' <<<"$release_json")"
-  if [[ -z "$tag" || "$tag" == null ]]; then
+  if [[ -z "$source_tag" || "$source_tag" == null ]]; then
     echo "Skipping $fork_repo: upstream has no latest release tag"
     return 0
   fi
 
-  version="$(sanitize_version "$tag")"
+  tag="$source_tag"
+  if [[ "$repo_name" == wrangler ]]; then
+    version="$(sanitize_version "${source_tag#wrangler@}")"
+    tag="v$version"
+  else
+    version="$(sanitize_version "$source_tag")"
+  fi
   if release_exists "$fork_repo" "$tag"; then
     if release_is_complete "$fork_repo" "$tag" "cli-$version.tgz"; then
       echo "Skipping $fork_repo: release $tag already exists"
@@ -444,7 +459,7 @@ process_repo() {
   fi
 
   archive_path="$repo_dir/cli-$version.tgz"
-  echo "New upstream release for $fork_repo: $upstream_repo $tag"
+  echo "New upstream release for $fork_repo: $upstream_repo $source_tag"
 
   if [[ "$dry_run" == true ]]; then
     if [[ "$continue_update" == true ]]; then
@@ -457,23 +472,23 @@ process_repo() {
 
   set_upstream_remote "$repo_dir" "$upstream_repo"
   if [[ "$(git -C "$repo_dir" rev-parse --is-shallow-repository)" == true ]]; then
-    git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/tags/$tag:refs/tags/$tag"
+    git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/tags/$source_tag:refs/tags/$source_tag"
     git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
   else
-    git -C "$repo_dir" fetch --no-tags upstream "+refs/tags/$tag:refs/tags/$tag"
+    git -C "$repo_dir" fetch --no-tags upstream "+refs/tags/$source_tag:refs/tags/$source_tag"
     git -C "$repo_dir" fetch --no-tags upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
   fi
 
   if [[ "$continue_update" == false ]]; then
-    rebase_base="refs/tags/$tag"
+    rebase_base="refs/tags/$source_tag"
     if git -C "$repo_dir" merge-base --is-ancestor "refs/remotes/upstream/$upstream_default" HEAD; then
       rebase_base="refs/remotes/upstream/$upstream_default"
     fi
     set +e
-    git -C "$repo_dir" rebase --onto "refs/tags/$tag" "$rebase_base"
+    git -C "$repo_dir" rebase --onto "refs/tags/$source_tag" "$rebase_base"
     status=$?
     set -e
-    handoff_to_agent "$repo_dir" "$fork_repo" "$upstream_repo" "$tag" "$status"
+    handoff_to_agent "$repo_dir" "$fork_repo" "$upstream_repo" "$source_tag" "$status"
     exit 75
   fi
 
@@ -486,8 +501,8 @@ process_repo() {
     git -C "$repo_dir" status --short >&2
     return 1
   fi
-  if ! git -C "$repo_dir" merge-base --is-ancestor "refs/tags/$tag" HEAD; then
-    echo "Cannot continue $fork_repo: HEAD is not based on upstream tag $tag" >&2
+  if ! git -C "$repo_dir" merge-base --is-ancestor "refs/tags/$source_tag" HEAD; then
+    echo "Cannot continue $fork_repo: HEAD is not based on upstream tag $source_tag" >&2
     return 1
   fi
   post_tag_upstream="$({
@@ -495,7 +510,7 @@ process_repo() {
       if git -C "$repo_dir" merge-base --is-ancestor "$commit" "refs/remotes/upstream/$upstream_default"; then
         printf '%s\n' "$commit"
       fi
-    done < <(git -C "$repo_dir" rev-list "refs/tags/$tag..HEAD")
+    done < <(git -C "$repo_dir" rev-list "refs/tags/$source_tag..HEAD")
   })"
   if [[ -n "$post_tag_upstream" ]]; then
     echo "Cannot continue $fork_repo: HEAD includes upstream commits newer than $tag" >&2
@@ -504,7 +519,7 @@ process_repo() {
   fi
 
   git -C "$repo_dir" tag -f "$tag" HEAD
-  build_manifest "$repo_dir" "$tag" "$version"
+  build_manifest "$repo_dir" "$source_tag" "$version"
   output="$(find_output "$repo_dir" "$repo_name")"
   mv -f "$output" "$archive_path"
   verify_archive_signatures "$archive_path"
@@ -517,7 +532,7 @@ process_repo() {
     --repo "$fork_repo" \
     --title "$tag" \
     --verify-tag \
-    --notes "Built from $upstream_repo $tag: $release_url"
+    --notes "Built from $upstream_repo $source_tag: $release_url"
   if ! release_is_complete "$fork_repo" "$tag" "cli-$version.tgz"; then
     echo "Release creation did not produce a complete $fork_repo $tag release" >&2
     return 1
