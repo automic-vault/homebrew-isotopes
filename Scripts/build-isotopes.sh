@@ -336,10 +336,23 @@ find_output() {
 }
 
 verify_archive_signatures() {
-  local archive_path="$1"
+  local repo_name="$1"
+  local archive_path="$2"
   local archive_dir file found=false
 
   archive_dir="$(mktemp -d "${TMPDIR:-/tmp}/automic-vault-isotope.XXXXXX")"
+  if [[ "$repo_name" == wrangler ]]; then
+    tar -tzf "$archive_path" | awk '
+      $0 !~ /^Wrangler\.app\// || $0 ~ /(^|\/)\.\.?(\/|$)/ { exit 1 }
+    ' || {
+      echo "Wrangler release archive must contain only safe Wrangler.app/ paths: $archive_path" >&2
+      return 1
+    }
+    tar -xzf "$archive_path" -C "$archive_dir"
+    codesign --verify --deep --strict --verbose=2 "$archive_dir/Wrangler.app"
+    rm -rf "$archive_dir"
+    return 0
+  fi
   tar -tzf "$archive_path" | awk '
     $0 !~ /^bin\// || $0 ~ /(^|\/)\.\.?(\/|$)/ { exit 1 }
   ' || {
@@ -522,7 +535,7 @@ process_repo() {
   build_manifest "$repo_dir" "$source_tag" "$version"
   output="$(find_output "$repo_dir" "$repo_name")"
   mv -f "$output" "$archive_path"
-  verify_archive_signatures "$archive_path"
+  verify_archive_signatures "$repo_name" "$archive_path"
   update_formula "$repo_name" "$tag" "$version" "$archive_path"
   formula_name="$(formula_name "$repo_name")"
 
