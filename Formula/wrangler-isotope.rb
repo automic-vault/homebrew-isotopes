@@ -1,12 +1,15 @@
 class WranglerIsotope < Formula
   desc "Automic Vault build of Cloudflare Wrangler"
   homepage "https://github.com/automic-vault/wrangler"
-  url "https://github.com/automic-vault/wrangler/releases/download/v4.129.0/cli-4.129.0.tgz"
-  sha256 "8a906ea5bd32bc18b0315fceebc5703fb095761c97033fe5f9e328935fbfaaf0"
+  url "https://github.com/automic-vault/wrangler/releases/download/v4.129.0-1/cli-4.129.0-1.tgz"
+  sha256 "0a9b5df8ef144897d37c7ffe0d3676b730a473678a9a41307aaf0f95227ff44f"
   license "Apache-2.0"
 
   depends_on arch: :arm64
   depends_on macos: :sonoma
+
+  # Rewriting signed library IDs would invalidate the bundle's resource seal.
+  preserve_rpath
 
   def install
     # Homebrew stages inside the archive's single top-level Wrangler.app directory.
