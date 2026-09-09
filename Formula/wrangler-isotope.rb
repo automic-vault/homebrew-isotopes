@@ -9,7 +9,8 @@ class WranglerIsotope < Formula
   depends_on macos: :sonoma
 
   def install
-    libexec.install "Wrangler.app"
+    # Homebrew stages inside the archive's single top-level Wrangler.app directory.
+    (libexec/"Wrangler.app").install "Contents"
     (bin/"wrangler").write <<~SH
       #!/bin/sh
       target=/opt/av/wrangler/Wrangler.app/Contents/MacOS/wrangler
