@@ -381,6 +381,7 @@ formula_name() {
     go-sqlcmd) echo sqlcmd-isotope ;;
     goat) echo goat-isotope ;;
     railway-cli) echo railway-isotope ;;
+    stripe-cli) echo stripe-isotope ;;
     wrangler) echo wrangler-isotope ;;
     ordercli) echo ordercli-isotope ;;
     uaa-cli) echo uaa-cli-isotope ;;
