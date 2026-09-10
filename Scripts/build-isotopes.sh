@@ -394,32 +394,40 @@ formula_name() {
   esac
 }
 
+formula_files() {
+  printf 'Formula/%s.rb\n' "$(formula_name "$1")"
+  if [[ "$1" == stripe-cli ]]; then
+    printf 'Formula/stripe-cli.rb\n'
+  fi
+}
+
 update_formula() {
   local repo_name="$1"
   local tag="$2"
   local version="$3"
   local archive_path="$4"
-  local formula_name sha256
+  local formula_file formula_path sha256
 
-  formula_name="$(formula_name "$repo_name")"
-  local formula_path="$repo_root/Formula/$formula_name.rb"
-
-  [[ -f "$formula_path" ]] || return 0
   sha256="$(shasum -a 256 "$archive_path" | awk '{ print $1 }')"
-  ruby - "$formula_path" "$org/$repo_name" "$tag" "$version" "$sha256" <<'RUBY'
+  while IFS= read -r formula_file; do
+    formula_path="$repo_root/$formula_file"
+    [[ -f "$formula_path" ]] || continue
+    ruby - "$formula_path" "$org/$repo_name" "$tag" "$version" "$sha256" <<'RUBY'
 path, repo, tag, version, sha256 = ARGV
 formula = File.read(path)
 raise "missing release URL in #{path}" unless formula.sub!(/^  url ".*"$/, %(  url "https://github.com/#{repo}/releases/download/#{tag}/cli-#{version}.tgz"))
 raise "missing SHA-256 in #{path}" unless formula.sub!(/^  sha256 ".*"$/, %(  sha256 "#{sha256}"))
 File.write(path, formula)
 RUBY
+  done < <(formula_files "$repo_name")
 }
 
 process_repo() {
   local repo_name="$1"
   local fork_repo="$org/$repo_name"
   local repo_dir="$clone_root/$repo_name"
-  local repo_json upstream_repo upstream_default current_default release_json source_tag tag version release_url output archive_path status rebase_base post_tag_upstream formula_name
+  local repo_json upstream_repo upstream_default current_default release_json source_tag tag version release_url output archive_path status rebase_base post_tag_upstream formula_file
+  local -a formula_files_to_commit=()
 
   echo "Checking $fork_repo"
   ensure_clone "$repo_name"
@@ -539,7 +547,6 @@ process_repo() {
   mv -f "$output" "$archive_path"
   verify_archive_signatures "$repo_name" "$archive_path"
   update_formula "$repo_name" "$tag" "$version" "$archive_path"
-  formula_name="$(formula_name "$repo_name")"
 
   git -C "$repo_dir" push origin "HEAD:$upstream_default" --force-with-lease
   git -C "$repo_dir" push origin "+refs/tags/$tag:refs/tags/$tag"
@@ -552,9 +559,14 @@ process_repo() {
     echo "Release creation did not produce a complete $fork_repo $tag release" >&2
     return 1
   fi
-  if ! git -C "$repo_root" ls-files --error-unmatch "Formula/$formula_name.rb" >/dev/null 2>&1 ||
-    ! git -C "$repo_root" diff --quiet -- "Formula/$formula_name.rb"; then
-    git -C "$repo_root" add "Formula/$formula_name.rb"
+  while IFS= read -r formula_file; do
+    if ! git -C "$repo_root" ls-files --error-unmatch "$formula_file" >/dev/null 2>&1 ||
+      ! git -C "$repo_root" diff --quiet -- "$formula_file"; then
+      formula_files_to_commit+=("$formula_file")
+    fi
+  done < <(formula_files "$repo_name")
+  if (( ${#formula_files_to_commit[@]} > 0 )); then
+    git -C "$repo_root" add "${formula_files_to_commit[@]}"
     git -C "$repo_root" commit -m "Update $repo_name isotope to $version"
     git -C "$repo_root" push origin HEAD
   fi
