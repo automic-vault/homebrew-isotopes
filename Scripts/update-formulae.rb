@@ -10,7 +10,7 @@ FORMULAE = {
     repo: "automic-vault/wrangler",
     asset: /^cli-(.+)\.tgz$/
   },
-  "Formula/stripe-cli.rb" => {
+  "Formula/stripe-isotope.rb" => {
     repo: "automic-vault/stripe-cli",
     asset: /^cli-(.+)\.tgz$/
   },
