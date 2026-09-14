@@ -1,8 +1,8 @@
 class OrdercliIsotope < Formula
   desc "Automic Vault build of ordercli"
   homepage "https://github.com/automic-vault/ordercli"
-  url "https://github.com/automic-vault/ordercli/releases/download/v0.1.0/cli-0.1.0.tgz"
-  sha256 "684cc8c3ac502afc4ffa31db6c2fb26e68c59e02bbf0e8d1dc7c60b181a2d96d"
+  url "https://github.com/automic-vault/ordercli/releases/download/v0.2.1/cli-0.2.1.tgz"
+  sha256 "5d60de44502611638676e653477013f7c8e3b8b2270f398503785b4a484b1ff4"
   license "MIT"
   def install
     bin.install "ordercli"
