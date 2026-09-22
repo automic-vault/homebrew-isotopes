@@ -1,8 +1,8 @@
 class StripeCli < Formula
   desc "Automic Vault build of Stripe CLI"
   homepage "https://github.com/automic-vault/stripe-cli"
-  url "https://github.com/automic-vault/stripe-cli/releases/download/v1.51.0/cli-1.51.0.tgz"
-  sha256 "7d75c7f48e0c6adca0d4c063fd71d75bf4579a36ebdcf8d5ebbb68c978c4e5f5"
+  url "https://github.com/automic-vault/stripe-cli/releases/download/v1.51.1/cli-1.51.1.tgz"
+  sha256 "3ea45afdb64f0f94dc5c6cc14bd748d7f3bb7fc64189e3e12ad7ca6849897c46"
   license "MIT"
 
   def install
