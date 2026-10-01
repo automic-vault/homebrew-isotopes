@@ -1,8 +1,8 @@
 class OpentofuIsotope < Formula
   desc "Automic Vault build of OpenTofu"
   homepage "https://github.com/automic-vault/opentofu"
-  url "https://github.com/automic-vault/opentofu/releases/download/v1.13.0/cli-1.13.0.tgz"
-  sha256 "ccfac2dd7ab5ddb061b178d38974583b548914bd6149ddd06cd495b789c4576a"
+  url "https://github.com/automic-vault/opentofu/releases/download/v1.13.1/cli-1.13.1.tgz"
+  sha256 "2f0d473346e228b0211377ac5c318fd5507a28f20544d3f3b7700700fcc14660"
   license "MPL-2.0"
   conflicts_with "opentofu", because: "both install `tofu`"
 
