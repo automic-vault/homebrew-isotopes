@@ -275,6 +275,38 @@ Then resume the release with:
 EOF
 }
 
+handoff_missing_manifest() {
+  local repo_dir="$1"
+  local fork_repo="$2"
+  local upstream_repo="$3"
+  local tag="$4"
+  local retry_command
+
+  printf -v retry_command 'cd %q && %q --clone-root %q --repo %q' \
+    "$repo_root" "$script_dir/build-isotopes.sh" "$clone_root" "${fork_repo#*/}"
+
+  cat >&2 <<EOF
+CONTROLLING AGENT ACTION REQUIRED
+
+Create the missing composable release manifest for this Automic Vault isotope:
+
+Fork checkout: $repo_dir
+Fork repo: $fork_repo
+Upstream repo: $upstream_repo
+Latest upstream release tag: $tag
+Missing file: $repo_dir/automic-vault.yml
+
+No rebase or release was attempted. Read the fork history and the canonical
+Automic Vault domain language and architecture, recover the isotope's existing
+security goal, and add the smallest automic-vault.yml that builds and signs the
+reviewed release artifact. Commit and push the manifest on the mirrored default
+branch. Do not publish an unsigned or partially reviewed release.
+
+Then retry discovery with:
+  $retry_command
+EOF
+}
+
 git_clean() {
   local repo_dir="$1"
   local rebase_apply rebase_merge
@@ -382,6 +414,7 @@ formula_name() {
     goat) echo goat-isotope ;;
     railway-cli) echo railway-isotope ;;
     stripe-cli) echo stripe-isotope ;;
+    doctl) echo doctl-isotope ;;
     wrangler) echo wrangler-isotope ;;
     ordercli) echo ordercli-isotope ;;
     uaa-cli) echo uaa-cli-isotope ;;
@@ -446,10 +479,6 @@ process_repo() {
   fi
   if [[ "$continue_update" == false ]]; then
     ensure_fork_branch "$repo_name" "$upstream_default" "$current_default"
-    if [[ ! -f "$repo_dir/automic-vault.yml" ]]; then
-      echo "Skipping $fork_repo: automic-vault.yml is unavailable"
-      return 0
-    fi
   fi
 
   if [[ "$continue_update" == true ]]; then
@@ -463,6 +492,15 @@ process_repo() {
   if [[ -z "$source_tag" || "$source_tag" == null ]]; then
     echo "Skipping $fork_repo: upstream has no latest release tag"
     return 0
+  fi
+
+  if [[ ! -f "$repo_dir/automic-vault.yml" ]]; then
+    if [[ "$continue_update" == true ]]; then
+      echo "Cannot continue $fork_repo: automic-vault.yml is unavailable" >&2
+      return 1
+    fi
+    handoff_missing_manifest "$repo_dir" "$fork_repo" "$upstream_repo" "$source_tag"
+    exit 75
   fi
 
   tag="$source_tag"
