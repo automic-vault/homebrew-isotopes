@@ -16,12 +16,9 @@ cask "automic-vault" do
   # The menubar helper Launch Agent runs the app itself, so removing it before
   # `quit` would close the app without Homebrew recording it for reopening
   # after an upgrade. Quit first, then remove the Launch Agent.
-  uninstall_postflight do
-    system_command "/bin/launchctl",
-                   args:         ["remove", "com.automicvault.menubar-helper"],
-                   must_succeed: false
-    launch_agent = Pathname("~/Library/LaunchAgents/com.automicvault.menubar-helper.plist").expand_path
-    launch_agent.delete if launch_agent.exist?
+  uninstall_postflight_steps do
+    run "/bin/launchctl", args: ["remove", "com.automicvault.menubar-helper"], must_succeed: false
+    remove "~/Library/LaunchAgents/com.automicvault.menubar-helper.plist"
   end
 
   uninstall quit: "com.automicvault"
