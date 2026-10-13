@@ -1,8 +1,8 @@
 class RailwayIsotope < Formula
   desc "Automic Vault build of Railway CLI"
   homepage "https://github.com/automic-vault/railway-cli"
-  url "https://github.com/automic-vault/railway-cli/releases/download/v5.66.0/cli-5.66.0.tgz"
-  sha256 "8a25a44e695f823b9161e73e80641a2b6de755962df8849bebcf6e54486b59d5"
+  url "https://github.com/automic-vault/railway-cli/releases/download/v5.67.1/cli-5.67.1.tgz"
+  sha256 "89d7389a4880a8284647d3be96f7081ca7531f3d908681c64469e61c604c92ca"
   license "MIT"
   conflicts_with "railway", because: "both install `railway`"
 
