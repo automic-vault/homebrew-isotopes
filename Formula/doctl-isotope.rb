@@ -1,8 +1,8 @@
 class DoctlIsotope < Formula
   desc "Automic Vault-signed release of the DigitalOcean CLI"
   homepage "https://github.com/automic-vault/doctl"
-  url "https://github.com/automic-vault/doctl/releases/download/v1.185.0/cli-1.185.0.tgz"
-  sha256 "7b5b1674a1c8de259f401841e2c1a235793bcac6abd85f7e63bc6a041563786a"
+  url "https://github.com/automic-vault/doctl/releases/download/v2.0.0/cli-2.0.0.tgz"
+  sha256 "b92adc42d3a36afc2eb64b79c0fafac13c6ef98b79535a91f11091dbd39f3667"
   license "Apache-2.0"
 
   depends_on :macos
