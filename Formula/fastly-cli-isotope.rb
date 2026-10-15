@@ -1,8 +1,8 @@
 class FastlyCliIsotope < Formula
   desc "Automic Vault build of Fastly CLI"
   homepage "https://github.com/automic-vault/fastly-cli"
-  url "https://github.com/automic-vault/fastly-cli/releases/download/v16.1.0/cli-16.1.0.tgz"
-  sha256 "221cd5d7a1207fcc085bbb250421d148c8361b1c8d8eec6806d9188269558731"
+  url "https://github.com/automic-vault/fastly-cli/releases/download/v16.2.0/cli-16.2.0.tgz"
+  sha256 "b6ec577ab2812f449cc82b30bfede133b6ba278a1f1a3de6f37d67e261917a43"
   license "Apache-2.0"
   conflicts_with "fastly", because: "both install `fastly`"
 
