@@ -1,8 +1,8 @@
 class GhCli < Formula
   desc "Automic Vault build of GitHub CLI"
   homepage "https://github.com/automic-vault/gh-cli"
-  url "https://github.com/automic-vault/gh-cli/releases/download/v2.102.0/cli-2.102.0.tgz"
-  sha256 "4ddb21b5c5ddd3af089f2049373fa4686b10a3ff1400355b30fe1aaf05a7dd76"
+  url "https://github.com/automic-vault/gh-cli/releases/download/v2.102.1/cli-2.102.1.tgz"
+  sha256 "bed9e1ab5a59e2f9b480477372cdd00a202f8eba4408050e431d20cef47adaa6"
   license "MIT"
   conflicts_with "gh", because: "both install `gh`"
 
