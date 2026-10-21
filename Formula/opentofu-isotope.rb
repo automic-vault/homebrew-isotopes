@@ -7,7 +7,7 @@ class OpentofuIsotope < Formula
   conflicts_with "opentofu", because: "both install `tofu`"
 
   def install
-    bin.install "tofu"
+    bin.install "bin/tofu"
   end
 
   test do

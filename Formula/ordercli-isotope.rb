@@ -5,7 +5,7 @@ class OrdercliIsotope < Formula
   sha256 "cacc6594855da5e117c170af1bc5a7a7fbf951bc90439beb4ad20543cd0a9cb6"
   license "MIT"
   def install
-    bin.install "ordercli"
+    bin.install "bin/ordercli"
   end
 
   test do

@@ -455,6 +455,29 @@ RUBY
   done < <(formula_files "$repo_name")
 }
 
+verify_formula_archive_paths() {
+  local repo_name="$1"
+  local archive_path="$2"
+  local formula_file formula_path source
+  local archive_entries
+
+  archive_entries="$(tar -tzf "$archive_path")"
+  while IFS= read -r formula_file; do
+    formula_path="$repo_root/$formula_file"
+    [[ -f "$formula_path" ]] || continue
+    while IFS= read -r source; do
+      if ! grep -Fxq -- "$source" <<<"$archive_entries"; then
+        echo "$formula_file installs missing archive path: $source" >&2
+        return 1
+      fi
+    done < <(ruby - "$formula_path" <<'RUBY'
+formula = File.read(ARGV.fetch(0))
+formula.scan(/\bbin\.install\s+"([^"]+)"/).flatten.each { |source| puts source }
+RUBY
+    )
+  done < <(formula_files "$repo_name")
+}
+
 process_repo() {
   local repo_name="$1"
   local fork_repo="$org/$repo_name"
@@ -585,6 +608,7 @@ process_repo() {
   mv -f "$output" "$archive_path"
   verify_archive_signatures "$repo_name" "$archive_path"
   update_formula "$repo_name" "$tag" "$version" "$archive_path"
+  verify_formula_archive_paths "$repo_name" "$archive_path"
 
   git -C "$repo_dir" push origin "HEAD:$upstream_default" --force-with-lease
   git -C "$repo_dir" push origin "+refs/tags/$tag:refs/tags/$tag"

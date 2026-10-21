@@ -7,7 +7,7 @@ class GhCli < Formula
   conflicts_with "gh", because: "both install `gh`"
 
   def install
-    bin.install "gh"
+    bin.install "bin/gh"
   end
 
   test do
