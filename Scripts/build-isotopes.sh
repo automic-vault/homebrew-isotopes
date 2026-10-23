@@ -470,11 +470,7 @@ verify_formula_archive_paths() {
         echo "$formula_file installs missing archive path: $source" >&2
         return 1
       fi
-    done < <(ruby - "$formula_path" <<'RUBY'
-formula = File.read(ARGV.fetch(0))
-formula.scan(/\bbin\.install\s+"([^"]+)"/).flatten.each { |source| puts source }
-RUBY
-    )
+    done < <(ruby -e 'formula = File.read(ARGV.fetch(0)); formula.scan(/\bbin\.install\s+"([^"]+)"/).flatten.each { |source| puts source }' "$formula_path")
   done < <(formula_files "$repo_name")
 }
 
