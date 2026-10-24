@@ -1,8 +1,8 @@
 class AliyunCliIsotope < Formula
   desc "Automic Vault build of Alibaba Cloud CLI"
   homepage "https://github.com/automic-vault/aliyun-cli"
-  url "https://github.com/automic-vault/aliyun-cli/releases/download/v3.5.1/cli-3.5.1.tgz"
-  sha256 "2cb5e2baed99a51da66a6e54f7d41b8dcd15b8838fdd027d5ec223a837a946d3"
+  url "https://github.com/automic-vault/aliyun-cli/releases/download/v3.5.2/cli-3.5.2.tgz"
+  sha256 "d65404b44fe358e710b971e8a06a52c85590dee383d3ce73faf6c47ad2b9f4fd"
   license "Apache-2.0"
 
   def install
