@@ -7,7 +7,8 @@ require "download_strategy"
 require "cleaner"
 require "keg"
 # Match brew test on clean machines where the assertion gems are not installed yet.
-Utils::GemSetup.install_bundler_gems!(groups: ["formula_test"], setup_path: false)
+gem_setup = defined?(Utils::GemSetup) ? Utils::GemSetup : Homebrew
+gem_setup.install_bundler_gems!(groups: ["formula_test"], setup_path: false)
 require "formula_assertions"
 require "timeout"
 
