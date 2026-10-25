@@ -7,7 +7,7 @@ class WakatimeCliIsotope < Formula
   conflicts_with "wakatime-cli", because: "both install `wakatime-cli`"
 
   def install
-    bin.install "bin/wakatime-cli"
+    bin.install "wakatime-cli"
   end
 
   test do

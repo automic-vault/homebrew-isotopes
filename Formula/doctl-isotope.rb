@@ -9,7 +9,7 @@ class DoctlIsotope < Formula
   conflicts_with "doctl", because: "both install `doctl`"
 
   def install
-    executable = Hardware::CPU.arm? ? "bin/doctl-arm64" : "bin/doctl-amd64"
+    executable = Hardware::CPU.arm? ? "doctl-arm64" : "doctl-amd64"
     system "/usr/bin/codesign", "--verify", "--strict", "-R",
            '=identifier "doctl" and anchor apple generic and certificate leaf[subject.OU] = "ZU76A67LGU"', executable
     bin.install executable => "doctl"

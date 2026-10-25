@@ -7,7 +7,7 @@ class StripeIsotope < Formula
   conflicts_with "stripe-cli", because: "both install `stripe`"
 
   def install
-    bin.install "bin/stripe"
+    bin.install "stripe"
   end
 
   test do

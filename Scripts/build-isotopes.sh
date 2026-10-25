@@ -75,7 +75,7 @@ if [[ "$continue_update" == false && -n "$continue_tag" ]]; then
   exit 64
 fi
 
-for tool in gh git jq ruby; do
+for tool in gh git jq ruby brew; do
   command -v "$tool" >/dev/null || {
     echo "Missing required tool: $tool" >&2
     exit 1
@@ -350,7 +350,7 @@ build_manifest() {
   ensure_codesign_identity
   (
     cd "$repo_dir"
-    CI="${CI:-true}" TAG="$tag" VERSION="$version" bash -euo pipefail -c "$build_script"
+    COPYFILE_DISABLE=1 CI="${CI:-true}" TAG="$tag" VERSION="$version" bash -euo pipefail -c "$build_script"
   )
 }
 
@@ -455,22 +455,15 @@ RUBY
   done < <(formula_files "$repo_name")
 }
 
-verify_formula_archive_paths() {
+verify_formula_install() {
   local repo_name="$1"
   local archive_path="$2"
-  local formula_file formula_path source
-  local archive_entries
+  local formula_file formula_path
 
-  archive_entries="$(tar -tzf "$archive_path")"
   while IFS= read -r formula_file; do
     formula_path="$repo_root/$formula_file"
     [[ -f "$formula_path" ]] || continue
-    while IFS= read -r source; do
-      if ! grep -Fxq -- "$source" <<<"$archive_entries"; then
-        echo "$formula_file installs missing archive path: $source" >&2
-        return 1
-      fi
-    done < <(ruby -e 'formula = File.read(ARGV.fetch(0)); formula.scan(/\bbin\.install\s+"([^"]+)"/).flatten.each { |source| puts source }' "$formula_path")
+    HOMEBREW_NO_AUTO_UPDATE=1 brew ruby "$script_dir/test-formula-install.rb" "$formula_path" "$archive_path" || return 1
   done < <(formula_files "$repo_name")
 }
 
@@ -604,7 +597,7 @@ process_repo() {
   mv -f "$output" "$archive_path"
   verify_archive_signatures "$repo_name" "$archive_path"
   update_formula "$repo_name" "$tag" "$version" "$archive_path"
-  verify_formula_archive_paths "$repo_name" "$archive_path"
+  verify_formula_install "$repo_name" "$archive_path"
 
   git -C "$repo_dir" push origin "HEAD:$upstream_default" --force-with-lease
   git -C "$repo_dir" push origin "+refs/tags/$tag:refs/tags/$tag"

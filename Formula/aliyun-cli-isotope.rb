@@ -6,7 +6,7 @@ class AliyunCliIsotope < Formula
   license "Apache-2.0"
 
   def install
-    bin.install "bin/aliyun"
+    bin.install "aliyun"
   end
 
   test do

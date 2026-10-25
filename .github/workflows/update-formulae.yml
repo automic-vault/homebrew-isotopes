@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   update:
-    runs-on: ubuntu-latest
+    runs-on: macos-14
     steps:
       - uses: actions/checkout@v4
 
@@ -18,6 +18,12 @@ jobs:
         run: ./Scripts/update-formulae.rb
         env:
           GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Verify changed formula installations before publishing
+        run: |
+          while IFS= read -r formula; do
+            ./Scripts/test-formulae.sh "$formula"
+          done < <(git diff --name-only -- Formula)
 
       - name: Commit changes
         run: |

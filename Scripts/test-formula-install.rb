@@ -6,6 +6,8 @@ require "formulary"
 require "download_strategy"
 require "cleaner"
 require "keg"
+require "formula_assertions"
+require "timeout"
 
 Pathname.activate_extensions!
 path = Pathname(ARGV.fetch(0)).realpath
@@ -41,6 +43,7 @@ Dir.mktmpdir("isotope-install-", Dir.home) do |directory|
     next unless command.mach_o_executable?
     raise "Invalid signature: #{command}" unless system("/usr/bin/codesign", "--verify", "--strict", command.to_s)
   end
-  raise "Formula test failed" unless formula.run_test
+  formula.extend(Homebrew::Assertions)
+  Timeout.timeout(300) { formula.run_test }
   puts "PASS: #{formula.name} installs and passes its formula test"
 end

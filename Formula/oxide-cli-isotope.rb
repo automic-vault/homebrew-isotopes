@@ -5,7 +5,7 @@ class OxideCliIsotope < Formula
   sha256 "ef5d7fd787306b6b2c5733dfaeeb422ca0165e24f4a419f00d39f0497a66306e"
   license "MPL-2.0"
   def install
-    bin.install "bin/oxide"
+    bin.install "oxide"
   end
 
   test do

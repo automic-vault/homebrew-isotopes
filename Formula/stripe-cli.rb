@@ -6,7 +6,7 @@ class StripeCli < Formula
   license "MIT"
 
   def install
-    bin.install "bin/stripe"
+    bin.install "stripe"
   end
 
   test do
