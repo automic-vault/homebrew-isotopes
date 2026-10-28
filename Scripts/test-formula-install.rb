@@ -26,11 +26,19 @@ Dir.mktmpdir("isotope-install-", Dir.home) do |directory|
   stage.mkpath
   downloader = CurlDownloadStrategy.new(formula.stable.url, formula.name, formula.version)
   downloader.define_singleton_method(:cached_location) { archive }
-  stage.cd do
-    downloader.stage do
-      puts "#{formula.name}: Homebrew staged #{Dir.children('.').sort.join(', ')}"
-      formula.install
+  brew_file = Pathname(HOMEBREW_BREW_FILE)
+  brew_mode = brew_file.stat.mode & 07777
+  begin
+    # Avoid a write-open probe that deadlocks Homebrew's sandbox with the Homebrew Execution Gate.
+    brew_file.chmod(brew_mode & ~0222)
+    stage.cd do
+      downloader.stage do
+        puts "#{formula.name}: Homebrew staged #{Dir.children('.').sort.join(', ')}"
+        formula.install
+      end
     end
+  ensure
+    brew_file.chmod(brew_mode)
   end
   Cleaner.new(formula).clean
   keg = Keg.allocate
