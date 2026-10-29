@@ -1,5 +1,6 @@
 # Run with: brew ruby Scripts/test-formula-install.rb Formula/NAME.rb ARCHIVE.tgz
 require "digest"
+require "fileutils"
 require "tmpdir"
 require "formula"
 require "formulary"
@@ -21,11 +22,13 @@ raise "Archive checksum mismatch" unless Digest::SHA256.file(archive).hexdigest 
 # Keep the destination outside Homebrew's build temp, as a real Cellar would be.
 Dir.mktmpdir("isotope-install-", Dir.home) do |directory|
   root = Pathname(directory)
+  local_archive = root/archive.basename
+  FileUtils.cp(archive, local_archive)
   formula.define_singleton_method(:prefix) { root/"keg" }
   stage = root/"stage"
   stage.mkpath
   downloader = CurlDownloadStrategy.new(formula.stable.url, formula.name, formula.version)
-  downloader.define_singleton_method(:cached_location) { archive }
+  downloader.define_singleton_method(:cached_location) { local_archive }
   brew_file = Pathname(HOMEBREW_BREW_FILE)
   brew_mode = brew_file.stat.mode & 07777
   begin
