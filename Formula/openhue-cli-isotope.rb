@@ -1,8 +1,8 @@
 class OpenhueCliIsotope < Formula
   desc "Automic Vault build of OpenHue CLI"
   homepage "https://github.com/automic-vault/openhue-cli"
-  url "https://github.com/automic-vault/openhue-cli/releases/download/0.24/cli-0.24.tgz"
-  sha256 "94e13031a71f5b3536690d8509ad9f418c819663849b9b5da1a8a198c90bbfc6"
+  url "https://github.com/automic-vault/openhue-cli/releases/download/0.25/cli-0.25.tgz"
+  sha256 "36828461db1505cc8607662eca63dfaee4ef5a70a550c8c55cbba120b1fccf35"
   license "Apache-2.0"
   def install
     bin.install "openhue"
