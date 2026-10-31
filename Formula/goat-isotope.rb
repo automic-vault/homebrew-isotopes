@@ -1,8 +1,8 @@
 class GoatIsotope < Formula
   desc "Automic Vault build of goat"
   homepage "https://github.com/automic-vault/goat"
-  url "https://github.com/automic-vault/goat/releases/download/v0.2.7/cli-0.2.7.tgz"
-  sha256 "2b724db0115c250c8deab8263d64aa7bccc7d621848223660ce42f3c5b349b7a"
+  url "https://github.com/automic-vault/goat/releases/download/v0.2.8/cli-0.2.8.tgz"
+  sha256 "a6ee660d7926cdf44e17dd6253a327850562228eaf80906872177d81516f70ab"
   license "Apache-2.0"
   conflicts_with "goat", because: "both install `goat`"
 
