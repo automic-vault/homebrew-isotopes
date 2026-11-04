@@ -23,12 +23,12 @@ usage() {
   cat <<'EOF'
 Usage: scripts/build-isotopes.sh [--clone-root PATH] [--repo NAME] [--continue --tag TAG] [--dry-run]
 
-For each automic-vault fork, check the latest upstream GitHub release. If the
-fork does not already have a release for that tag, rebase the fork's mirrored
-upstream default branch onto the upstream tag, then stop with instructions for
-the controlling agent. After the agent resolves conflicts and verifies the fork
-goals, resume with --continue --repo NAME --tag TAG to build and publish
-cli-<version>.tgz to the fork release.
+For each automic-vault fork, check the latest upstream GitHub release. The
+standalone gcloud repository instead tracks Google's official source archive.
+If the isotope does not already have a release for that version, stop with
+instructions for the controlling agent. After the agent verifies the isotope
+goal, resume with --continue --repo NAME --tag TAG to build and publish
+cli-<version>.tgz to the isotope release.
 EOF
 }
 
@@ -75,7 +75,7 @@ if [[ "$continue_update" == false && -n "$continue_tag" ]]; then
   exit 64
 fi
 
-for tool in gh git jq ruby brew; do
+for tool in curl gh git jq ruby brew; do
   command -v "$tool" >/dev/null || {
     echo "Missing required tool: $tool" >&2
     exit 1
@@ -241,6 +241,14 @@ latest_release_json() {
   fi
 }
 
+gcloud_release_json() {
+  local version
+  version="$(curl -fsSL https://dl.google.com/dl/cloudsdk/channels/rapid/components-2.json | jq -er '.version')"
+  jq -cn --arg tag "v$version" \
+    --arg url "https://docs.cloud.google.com/sdk/docs/downloads-versioned-archives" \
+    '{tag_name: $tag, html_url: $url}'
+}
+
 handoff_to_agent() {
   local repo_dir="$1"
   local fork_repo="$2"
@@ -269,6 +277,37 @@ top of upstream $tag, and make the smallest fixes needed if upstream changed.
 Run the manifest build or the narrowest practical check. Leave the checkout on
 the mirrored default branch with no unmerged paths, no rebase/merge/cherry-pick
 in progress, and no uncommitted changes.
+
+Then resume the release with:
+  $resume_command
+EOF
+}
+
+handoff_archive_to_agent() {
+  local repo_dir="$1"
+  local fork_repo="$2"
+  local tag="$3"
+  local resume_command
+
+  printf -v resume_command 'cd %q && %q --clone-root %q --repo %q --continue --tag %q' \
+    "$repo_root" "$script_dir/build-isotopes.sh" "$clone_root" "${fork_repo#*/}" "$tag"
+
+  cat >&2 <<EOF
+CONTROLLING AGENT ACTION REQUIRED
+
+Verify this Automic Vault source-archive isotope update:
+
+Isotope checkout: $repo_dir
+Isotope repo: $fork_repo
+Official Google Cloud CLI version: $tag
+
+Work in the isotope checkout. Verify upstream.json pins that exact version to
+Google's immutable Cloud Storage object generation and publisher metadata.
+Review the source delta against the prior archive, confirm the isotope's
+security goal still holds, and make the smallest necessary fixes. Run the
+narrowest practical checks and commit every intentional change. Leave the
+checkout on its default branch with no unmerged paths, Git operation, or
+uncommitted changes.
 
 Then resume the release with:
   $resume_command
@@ -484,20 +523,27 @@ process_repo() {
   local repo_name="$1"
   local fork_repo="$org/$repo_name"
   local repo_dir="$clone_root/$repo_name"
-  local repo_json upstream_repo upstream_default current_default release_json source_tag tag version release_url output archive_path status rebase_base post_tag_upstream formula_file
+  local repo_json upstream_repo upstream_default current_default release_json source_tag tag version release_url output archive_path status rebase_base post_tag_upstream formula_file pinned_version
+  local source_archive=false
   local -a formula_files_to_commit=()
 
   echo "Checking $fork_repo"
   ensure_clone "$repo_name"
 
   repo_json="$(gh api "/repos/$fork_repo")"
-  upstream_repo="$(jq -r '.parent.full_name // empty' <<<"$repo_json")"
-  if [[ -z "$upstream_repo" ]]; then
-    echo "Skipping $fork_repo: not a GitHub fork"
-    return 0
-  fi
-  upstream_default="$(jq -r '.parent.default_branch // empty' <<<"$repo_json")"
   current_default="$(jq -r '.default_branch // empty' <<<"$repo_json")"
+  if [[ "$repo_name" == gcloud ]]; then
+    source_archive=true
+    upstream_repo="Google Cloud CLI source archive"
+    upstream_default="$current_default"
+  else
+    upstream_repo="$(jq -r '.parent.full_name // empty' <<<"$repo_json")"
+    if [[ -z "$upstream_repo" ]]; then
+      echo "Skipping $fork_repo: not a GitHub fork"
+      return 0
+    fi
+    upstream_default="$(jq -r '.parent.default_branch // empty' <<<"$repo_json")"
+  fi
   if [[ -z "$upstream_default" ]]; then
     echo "Skipping $fork_repo: upstream default branch is unavailable"
     return 0
@@ -506,7 +552,13 @@ process_repo() {
     ensure_fork_branch "$repo_name" "$upstream_default" "$current_default"
   fi
 
-  if [[ "$continue_update" == true ]]; then
+  if [[ "$source_archive" == true && "$continue_update" == true ]]; then
+    release_json="$(jq -cn --arg tag "$continue_tag" \
+      --arg url "https://docs.cloud.google.com/sdk/docs/downloads-versioned-archives" \
+      '{tag_name: $tag, html_url: $url}')"
+  elif [[ "$source_archive" == true ]]; then
+    release_json="$(gcloud_release_json)"
+  elif [[ "$continue_update" == true ]]; then
     release_json="$(gh api -H "Accept: application/vnd.github+json" \
       "/repos/$upstream_repo/releases/tags/$continue_tag")"
   else
@@ -550,22 +602,29 @@ process_repo() {
   if [[ "$dry_run" == true ]]; then
     if [[ "$continue_update" == true ]]; then
       echo "Would validate the repaired checkout, build, and release $archive_path"
+    elif [[ "$source_archive" == true ]]; then
+      echo "Would stop for the controlling agent to review the official source archive for $tag"
     else
       echo "Would rebase $upstream_default onto upstream tag $tag and stop for the controlling agent"
     fi
     return 0
   fi
 
-  set_upstream_remote "$repo_dir" "$upstream_repo"
-  if [[ "$(git -C "$repo_dir" rev-parse --is-shallow-repository)" == true ]]; then
-    git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/tags/$source_tag:refs/tags/$source_tag"
-    git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
-  else
-    git -C "$repo_dir" fetch --no-tags upstream "+refs/tags/$source_tag:refs/tags/$source_tag"
-    git -C "$repo_dir" fetch --no-tags upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
+  if [[ "$source_archive" == true && "$continue_update" == false ]]; then
+    handoff_archive_to_agent "$repo_dir" "$fork_repo" "$source_tag"
+    exit 75
+  elif [[ "$source_archive" == false ]]; then
+    set_upstream_remote "$repo_dir" "$upstream_repo"
+    if [[ "$(git -C "$repo_dir" rev-parse --is-shallow-repository)" == true ]]; then
+      git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/tags/$source_tag:refs/tags/$source_tag"
+      git -C "$repo_dir" fetch --no-tags --depth=1 upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
+    else
+      git -C "$repo_dir" fetch --no-tags upstream "+refs/tags/$source_tag:refs/tags/$source_tag"
+      git -C "$repo_dir" fetch --no-tags upstream "+refs/heads/$upstream_default:refs/remotes/upstream/$upstream_default"
+    fi
   fi
 
-  if [[ "$continue_update" == false ]]; then
+  if [[ "$source_archive" == false && "$continue_update" == false ]]; then
     rebase_base="refs/tags/$source_tag"
     if git -C "$repo_dir" merge-base --is-ancestor "refs/remotes/upstream/$upstream_default" HEAD; then
       rebase_base="refs/remotes/upstream/$upstream_default"
@@ -587,21 +646,29 @@ process_repo() {
     git -C "$repo_dir" status --short >&2
     return 1
   fi
-  if ! git -C "$repo_dir" merge-base --is-ancestor "refs/tags/$source_tag" HEAD; then
+  if [[ "$source_archive" == true ]]; then
+    pinned_version="$(jq -er '.gcloud.version' "$repo_dir/upstream.json")"
+    if [[ "$pinned_version" != "$version" ]]; then
+      echo "Cannot continue $fork_repo: upstream.json pins $pinned_version, expected $version" >&2
+      return 1
+    fi
+  elif ! git -C "$repo_dir" merge-base --is-ancestor "refs/tags/$source_tag" HEAD; then
     echo "Cannot continue $fork_repo: HEAD is not based on upstream tag $source_tag" >&2
     return 1
   fi
-  post_tag_upstream="$({
-    while read -r commit; do
-      if git -C "$repo_dir" merge-base --is-ancestor "$commit" "refs/remotes/upstream/$upstream_default"; then
-        printf '%s\n' "$commit"
-      fi
-    done < <(git -C "$repo_dir" rev-list "refs/tags/$source_tag..HEAD")
-  })"
-  if [[ -n "$post_tag_upstream" ]]; then
-    echo "Cannot continue $fork_repo: HEAD includes upstream commits newer than $tag" >&2
-    printf '%s\n' "$post_tag_upstream" >&2
-    return 1
+  if [[ "$source_archive" == false ]]; then
+    post_tag_upstream="$({
+      while read -r commit; do
+        if git -C "$repo_dir" merge-base --is-ancestor "$commit" "refs/remotes/upstream/$upstream_default"; then
+          printf '%s\n' "$commit"
+        fi
+      done < <(git -C "$repo_dir" rev-list "refs/tags/$source_tag..HEAD")
+    })"
+    if [[ -n "$post_tag_upstream" ]]; then
+      echo "Cannot continue $fork_repo: HEAD includes upstream commits newer than $tag" >&2
+      printf '%s\n' "$post_tag_upstream" >&2
+      return 1
+    fi
   fi
 
   git -C "$repo_dir" tag -f "$tag" HEAD
@@ -612,7 +679,11 @@ process_repo() {
   update_formula "$repo_name" "$tag" "$version" "$archive_path"
   verify_formula_install "$repo_name" "$archive_path"
 
-  git -C "$repo_dir" push origin "HEAD:$upstream_default" --force-with-lease
+  if [[ "$source_archive" == true ]]; then
+    git -C "$repo_dir" push origin "HEAD:$upstream_default"
+  else
+    git -C "$repo_dir" push origin "HEAD:$upstream_default" --force-with-lease
+  fi
   git -C "$repo_dir" push origin "+refs/tags/$tag:refs/tags/$tag"
   gh release create "$tag" "$archive_path" \
     --repo "$fork_repo" \
@@ -639,7 +710,7 @@ process_repo() {
 
 repo_names="$(
   gh repo list "$org" --limit 1000 --json isFork,name \
-    --jq '.[] | select(.isFork) | .name'
+    --jq '.[] | select(.isFork or .name == "gcloud") | .name'
 )"
 if [[ -n "$only_repo" ]]; then
   repo_names="$(awk -v repo="$only_repo" '$0 == repo' <<<"$repo_names")"

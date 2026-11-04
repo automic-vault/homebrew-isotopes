@@ -14,16 +14,25 @@ printf '%s\n' \
   '#!/bin/bash' \
   'set -euo pipefail' \
   'if [[ "$1 $2" == "repo list" ]]; then' \
-  '  echo doctl' \
+  '  printf "doctl\ngcloud\n"' \
   'elif [[ "$1" == api && "${!#}" == "/repos/automic-vault/doctl" ]]; then' \
   '  echo '\''{"parent":{"full_name":"digitalocean/doctl","default_branch":"main"},"default_branch":"main"}'\''' \
+  'elif [[ "$1" == api && "${!#}" == "/repos/automic-vault/gcloud" ]]; then' \
+  '  echo '\''{"parent":null,"default_branch":"main"}'\''' \
   'elif [[ "$1" == api && "${!#}" == "/repos/digitalocean/doctl/releases/latest" ]]; then' \
   '  echo '\''{"tag_name":"v1.177.0","html_url":"https://example.invalid/v1.177.0"}'\''' \
+  'elif [[ "$1 $2" == "release view" ]]; then' \
+  '  exit 1' \
   'else' \
   '  echo "unexpected gh invocation: $*" >&2' \
   '  exit 1' \
   'fi' >"$fixture/bin/gh"
 chmod +x "$fixture/bin/gh"
+
+printf '%s\n' \
+  '#!/bin/bash' \
+  'echo '\''{"version":"592.0.0"}'\''' >"$fixture/bin/curl"
+chmod +x "$fixture/bin/curl"
 
 set +e
 output="$(
@@ -44,5 +53,26 @@ grep -Fq 'Missing file:' <<<"$output"
 grep -Fq 'Then retry discovery with:' <<<"$output"
 if grep -Fq 'Skipping automic-vault/doctl' <<<"$output"; then
   echo "missing manifests must not be reported as successful skips" >&2
+  exit 1
+fi
+
+mkdir -p "$fixture/clones/gcloud"
+git -C "$fixture/clones/gcloud" init --quiet
+git -C "$fixture/clones/gcloud" remote add origin https://example.invalid/gcloud.git
+printf 'name: isotope:gcloud\nbuild: echo unused\n' >"$fixture/clones/gcloud/automic-vault.yml"
+
+output="$(
+  PATH="$fixture/bin:$PATH" \
+    bash "$repo_root/Scripts/build-isotopes.sh" \
+      --dry-run \
+      --clone-root "$fixture/clones" \
+      --repo gcloud 2>&1
+)"
+
+printf '%s\n' "$output"
+grep -Fq 'New upstream release for automic-vault/gcloud: Google Cloud CLI source archive v592.0.0' <<<"$output"
+grep -Fq 'Would stop for the controlling agent to review the official source archive for v592.0.0' <<<"$output"
+if grep -Fq 'not a GitHub fork' <<<"$output"; then
+  echo "gcloud must use the standalone source-archive path" >&2
   exit 1
 fi
