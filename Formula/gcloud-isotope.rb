@@ -2,7 +2,7 @@ class GcloudIsotope < Formula
   desc "Automic Vault build of Google Cloud CLI"
   homepage "https://github.com/automic-vault/gcloud"
   url "https://github.com/automic-vault/gcloud/releases/download/v592.0.0/cli-592.0.0.tgz"
-  sha256 "35b74a86f57ba7e357316c7ddbea0ad646ead2932eea6a2ec1981e68cea27ddb"
+  sha256 "f78671b7391a5a73ebac3be428719cd9206a7122b2d8b285908d04a35c6f80bc"
   license "Apache-2.0"
 
   depends_on arch: :arm64
