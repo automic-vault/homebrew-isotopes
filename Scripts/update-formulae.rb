@@ -6,6 +6,10 @@ require "net/http"
 require "uri"
 
 FORMULAE = {
+  "Formula/gcloud-isotope.rb" => {
+    repo: "automic-vault/gcloud",
+    asset: /^cli-(.+)\.tgz$/
+  },
   "Formula/wrangler-isotope.rb" => {
     repo: "automic-vault/wrangler",
     asset: /^cli-(.+)\.tgz$/

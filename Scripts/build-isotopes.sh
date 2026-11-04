@@ -373,6 +373,18 @@ verify_archive_signatures() {
   local archive_dir file found=false
 
   archive_dir="$(mktemp -d "${TMPDIR:-/tmp}/automic-vault-isotope.XXXXXX")"
+  if [[ "$repo_name" == gcloud ]]; then
+    tar -tzf "$archive_path" | awk '
+      $0 !~ /^Gcloud\.app\// || $0 ~ /(^|\/)\.\.?(\/|$)/ { exit 1 }
+    ' || {
+      echo "gcloud release archive must contain only safe Gcloud.app/ paths: $archive_path" >&2
+      return 1
+    }
+    tar -xzf "$archive_path" --no-same-owner --no-same-permissions --no-acls --no-xattrs --no-fflags --safe-writes -C "$archive_dir"
+    codesign --verify --deep --strict --all-architectures --verbose=2 "$archive_dir/Gcloud.app"
+    rm -rf "$archive_dir"
+    return 0
+  fi
   if [[ "$repo_name" == wrangler ]]; then
     tar -tzf "$archive_path" | awk '
       $0 !~ /^Wrangler\.app\// || $0 ~ /(^|\/)\.\.?(\/|$)/ { exit 1 }
@@ -416,6 +428,7 @@ formula_name() {
     stripe-cli) echo stripe-isotope ;;
     doctl) echo doctl-isotope ;;
     wrangler) echo wrangler-isotope ;;
+    gcloud) echo gcloud-isotope ;;
     ordercli) echo ordercli-isotope ;;
     uaa-cli) echo uaa-cli-isotope ;;
     openhue-cli) echo openhue-cli-isotope ;;
