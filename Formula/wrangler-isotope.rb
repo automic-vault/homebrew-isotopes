@@ -1,8 +1,8 @@
 class WranglerIsotope < Formula
   desc "Automic Vault build of Cloudflare Wrangler"
   homepage "https://github.com/automic-vault/wrangler"
-  url "https://github.com/automic-vault/wrangler/releases/download/v4.162.0/cli-4.162.0.tgz"
-  sha256 "95a811a20dea94ccaefe60b4a5aabbb7f5c9a8800da2df3c1fe3240ec59ee012"
+  url "https://github.com/automic-vault/wrangler/releases/download/v4.163.0/cli-4.163.0.tgz"
+  sha256 "a51ac0de9570c701e7052ec2371f9e87543fd4899228bdbf0e9b102989cf3ed0"
   license "Apache-2.0"
 
   depends_on arch: :arm64
