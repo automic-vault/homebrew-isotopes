@@ -1,8 +1,8 @@
 class StripeIsotope < Formula
   desc "Automic Vault build of Stripe CLI"
   homepage "https://github.com/automic-vault/stripe-cli"
-  url "https://github.com/automic-vault/stripe-cli/releases/download/v1.55.14/cli-1.55.14.tgz"
-  sha256 "b599f9c845859f6546182d5cbacd17c79a8a2b4c8fc9b48820848b69086f886c"
+  url "https://github.com/automic-vault/stripe-cli/releases/download/v1.55.15/cli-1.55.15.tgz"
+  sha256 "e5d794a1764d1348276a1b88958b9bb5aebbc3075a37e83b49176f449d748f4a"
   license "MIT"
   conflicts_with "stripe-cli", because: "both install `stripe`"
 
